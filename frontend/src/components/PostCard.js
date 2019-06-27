@@ -1,10 +1,11 @@
 import React, {Component} from "react";
-import { Image, Dimensions, Modal, View } from 'react-native';
+import {Image, Dimensions, Modal, View} from 'react-native';
 import {Body, Card, CardItem, Thumbnail, Left, Spinner} from "native-base";
 import {Text,} from "react-native-elements";
 import {TouchableOpacity, StyleSheet} from "react-native";
 import ImageViewer from 'react-native-image-zoom-viewer';
-
+import { Video } from 'expo';
+import VideoPlayer from 'expo-video-player';
 
 let ScreenWidth = Dimensions.get("window").width;
 
@@ -16,6 +17,7 @@ class PostCard extends Component {
         width: null,
         loading: true,
         modal: false,
+        isPortrait: true,
     }
 
     getImages = (images) => {
@@ -23,7 +25,7 @@ class PostCard extends Component {
         images.forEach((image) => {
             let resolutions = this.getResolutions(image)
             imageUrls.push({
-                url: resolutions[resolutions.length-1].url.replace(/amp;/g, ''),
+                url: resolutions[resolutions.length - 1].url.replace(/amp;/g, ''),
                 props: {}
             })
         })
@@ -32,10 +34,9 @@ class PostCard extends Component {
 
     getResolutions = (image) => {
         let resolutions;
-        if(image.variants.gif !== undefined){
+        if (image.variants.gif !== undefined) {
             return image.variants.gif.resolutions
-        }
-        else{
+        } else {
             return image.resolutions
         }
     }
@@ -43,8 +44,8 @@ class PostCard extends Component {
     getPreviewUrl = async (image) => {
         let final_resolution;
         let resolutions = this.getResolutions(image)
-        for (let i=resolutions.length-1; i >= 0; i--){
-            if (resolutions[i].width < ScreenWidth){
+        for (let i = resolutions.length - 1; i >= 0; i--) {
+            if (resolutions[i].width < ScreenWidth) {
                 final_resolution = resolutions[i];
                 break;
             }
@@ -71,12 +72,25 @@ class PostCard extends Component {
         })
     }
 
+    _switchToLandscape = () => {
+        this.setState({
+            isPortrait: false
+        })
+    }
+
+    _switchToPortrait = () => {
+        this.setState({
+            isPortrait: true
+        })
+    }
+
+
     componentDidMount() {
-        if(this.props.item.preview)
+        if (this.props.item.preview)
             this.getPreviewUrl(this.props.item.preview.images[0])
     }
 
-    render () {
+    render() {
         let item = this.props.item;
         return (
             <Card style={styles.card}>
@@ -93,14 +107,31 @@ class PostCard extends Component {
                     </Left>
                 </CardItem>
                 {this.state.loading && item.preview &&
-                    <Spinner color='blue' />
+                <Spinner color='blue'/>
                 }
                 {item.preview && !this.state.loading &&
                 <CardItem cardBody style={{
-                    backgroundColor:'#D3D3D3',
+                    backgroundColor: '#D3D3D3',
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}>
+                    {item.is_video &&
+                    <VideoPlayer
+                        videoProps={{
+                            shouldPlay: false,
+                            isMuted: false,
+                            resizeMode: Video.RESIZE_MODE_CONTAIN,
+                            source: {
+                                uri: item.media.reddit_video.fallback_url,
+                            },
+                        }}
+                        switchToLandscape={this._switchToLandscape}
+                        switchToPortrait={this._switchToPortrait}
+                        isPortrait={this.state.isPortrait}
+                        playFromPositionMillis={0}
+                    />
+                    }
+                    {!item.is_video &&
                     <TouchableOpacity
                         style={{
                             backgroundColor: 'transparent',
@@ -119,7 +150,7 @@ class PostCard extends Component {
                             visible={this.state.modal}
                             transparent={true}
                             onRequestClose={() => {
-                                alert('Please login to continue.');
+                                null
                             }}>
                             <ImageViewer
                                 imageUrls={this.getImages(item.preview.images)}
@@ -129,6 +160,7 @@ class PostCard extends Component {
                             />
                         </Modal>
                     </TouchableOpacity>
+                    }
                 </CardItem>
                 }
                 <TouchableOpacity style={{backgroundColor: 'transparent'}}>
