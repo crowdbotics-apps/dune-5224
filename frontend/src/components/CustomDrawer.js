@@ -36,8 +36,12 @@ export class CustomDrawerContentComponent extends Component {
                     handleConfimation={this.handleDelete}
                 />
                 <SafeAreaView style={{ flex: 1 }} forceInset={{ top: 'always', horizontal: 'never' }}>
-                    <Header style={{ height: 200 }}>
-                        <Body>
+                    <Header style={{ height: 200, backgroundColor: '#607D8B' }}>
+                        <Body
+                            style={{
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}>
                             <Image
                                 style={{ height: 150, width: 150, borderRadius: 75 }}
                                 source={ require('../assets/images/icon.png') }

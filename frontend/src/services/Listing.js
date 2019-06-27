@@ -14,4 +14,16 @@ const getPostsAPI = (sub, filter, token) => {
     return client.sendRequest({}, header);
 };
 
-export {getPostsAPI};
+const getHomePostsAPI = (filter, token) => {
+    const path = `/${filter}/`;
+    const url = `${Utils.oAuthUrl}${path}`;
+    const client = new APIClient(url, APIConstants.HTTPMethod.GET);
+    const header = {
+        'Authorization': `bearer ${token}`,
+        'User-Agent': 'Dune by Mayank'
+    }
+
+    return client.sendRequest({}, header);
+};
+
+export {getPostsAPI, getHomePostsAPI};

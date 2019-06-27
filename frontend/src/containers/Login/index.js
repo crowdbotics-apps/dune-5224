@@ -12,6 +12,7 @@ import url from 'url';
 import styles from './styles';
 import {SecureStore} from "expo/build/Expo";
 import {getToken} from "../../services/Authentication";
+import { SplashScreen } from 'expo';
 
 let ScreenHeight = Dimensions.get("window").height;
 let ScreenWidth = Dimensions.get("window").width;
@@ -24,9 +25,12 @@ class Login extends Component {
     };
 
     async componentWillMount() {
-        let token = await SecureStore.getItemAsync('token');
-        if (token !== '')
-            this.props.navigation.navigate('Home')
+        SplashScreen.preventAutoHide();
+        await SecureStore.getItemAsync('token')
+            .then((response) => {
+                if (response)
+                    this.props.navigation.navigate('Home')
+            })
     }
 
     resetWebViewToInitialUrl = () => {
@@ -69,6 +73,7 @@ class Login extends Component {
     }
 
     render() {
+        SplashScreen.hide();
         return (
             <Container style={styles.container}>
                 {!this.state.loading &&

@@ -1,5 +1,5 @@
 import {HOME_ERROR, HOME_LOADING, HOME_SUCCESS} from "./types";
-import {getPostsAPI} from '../../services/Listing'
+import {getHomePostsAPI, getPostsAPI} from '../../services/Listing'
 import {SecureStore} from "expo";
 import {checkToken} from '../../utils/tokenCheck';
 
@@ -39,13 +39,26 @@ export function getPosts(sub, filter) {
             .catch((error) => {
                 console.log(error)
             })
-        getPostsAPI(sub, filter, token)
-            .then((res) => {
+        if (sub) {
+            getPostsAPI(sub, filter, token)
+                .then((res) => {
+                    dispatch(setHomeLoading(false));
+                    dispatch(setHomeSuccess(res))
+                }).catch((error) => {
                 dispatch(setHomeLoading(false));
-                dispatch(setHomeSuccess(res))
-            }).catch((error) => {
-            dispatch(setHomeLoading(false));
-            dispatch(setHomeError(error));
-        });
+                dispatch(setHomeError(error));
+            });
+        }
+        else {
+            getHomePostsAPI(filter, token)
+                .then((res) => {
+                    dispatch(setHomeLoading(false));
+                    dispatch(setHomeSuccess(res))
+                }).catch((error) => {
+                dispatch(setHomeLoading(false));
+                dispatch(setHomeError(error));
+            });
+        }
+
     }
 }

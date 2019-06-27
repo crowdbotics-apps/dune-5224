@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import { Image, Dimensions, Modal } from 'react-native';
+import { Image, Dimensions, Modal, View } from 'react-native';
 import {Body, Card, CardItem, Thumbnail, Left, Spinner} from "native-base";
 import {Text,} from "react-native-elements";
 import {TouchableOpacity, StyleSheet} from "react-native";
@@ -8,18 +8,12 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 
 let ScreenWidth = Dimensions.get("window").width;
 
-const images = [
-    {
-        // Simplest usage.
-        url: "https://external-preview.redd.it/lN8SeTNkfDGfWG5ddhlQaCIG5482FDvqRWPWrNBvVQ0.jpg?width=640&crop=smart&auto=webp&s=0b567002f043caee4e537574d1bf6a7d5756edf2",
-        freeHeight: true
-    }
-];
 
 class PostCard extends Component {
     state = {
         url: null,
         height: null,
+        width: null,
         loading: true,
         modal: false,
     }
@@ -27,16 +21,28 @@ class PostCard extends Component {
     getImages = (images) => {
         let imageUrls = [];
         images.forEach((image) => {
+            let resolutions = this.getResolutions(image)
             imageUrls.push({
-                url: image.resolutions[image.resolutions.length-1].url.replace(/amp;/g, ''),
+                url: resolutions[resolutions.length-1].url.replace(/amp;/g, ''),
                 props: {}
             })
         })
         return imageUrls;
     }
 
-    getPreviewUrl = async (resolutions) => {
+    getResolutions = (image) => {
+        let resolutions;
+        if(image.variants.gif !== undefined){
+            return image.variants.gif.resolutions
+        }
+        else{
+            return image.resolutions
+        }
+    }
+
+    getPreviewUrl = async (image) => {
         let final_resolution;
+        let resolutions = this.getResolutions(image)
         for (let i=resolutions.length-1; i >= 0; i--){
             if (resolutions[i].width < ScreenWidth){
                 final_resolution = resolutions[i];
@@ -47,6 +53,7 @@ class PostCard extends Component {
         this.setState({
             url: url,
             height: final_resolution.height,
+            width: final_resolution.width,
             loading: false
         })
     }
@@ -66,7 +73,7 @@ class PostCard extends Component {
 
     componentDidMount() {
         if(this.props.item.preview)
-            this.getPreviewUrl(this.props.item.preview.images[0].resolutions)
+            this.getPreviewUrl(this.props.item.preview.images[0])
     }
 
     render () {
@@ -85,20 +92,26 @@ class PostCard extends Component {
                         </Body>
                     </Left>
                 </CardItem>
-                {this.state.loading &&
+                {this.state.loading && item.preview &&
                     <Spinner color='blue' />
                 }
                 {item.preview && !this.state.loading &&
-                <CardItem cardBody>
+                <CardItem cardBody style={{
+                    backgroundColor:'#D3D3D3',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
                     <TouchableOpacity
-                        style={{backgroundColor: 'transparent'}}
+                        style={{
+                            backgroundColor: 'transparent',
+                        }}
                         onPress={this._openImageViewer}
                     >
                         <Image
                             source={{uri: this.state.url}}
                             style={{
                                 height: this.state.height,
-                                width: ScreenWidth,
+                                width: this.state.width,
                                 flex: 1,
                             }}
                         />
