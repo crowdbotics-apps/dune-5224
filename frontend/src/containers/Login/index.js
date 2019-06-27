@@ -1,119 +1,96 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import {
-  Image,
-  TouchableOpacity,
-  View,
+    WebView,
+    Dimensions,
+    Text
 } from 'react-native';
 import {
-  Button,
-  Container,
-  Content,
-  Form,
-  Item,
-  Input,
-  Text,
+    Container,
+    Spinner
 } from 'native-base';
-
+import url from 'url';
 import styles from './styles';
+import {SecureStore} from "expo/build/Expo";
+import {getToken} from "../../services/Authentication";
+
+let ScreenHeight = Dimensions.get("window").height;
+let ScreenWidth = Dimensions.get("window").width;
 
 class Login extends Component {
-  state = {
-    username: '',
-    password: '',
-  };
+    state = {
+        key: 1,
+        scope: "identity, mysubreddits, vote, read",
+        loading: false
+    };
 
-  // navigate to home after a successful login
-  onLoginButtonPressed = () => {
-    // TODO: Login
+    async componentWillMount() {
+        let token = await SecureStore.getItemAsync('token');
+        if (token !== '')
+            this.props.navigation.navigate('Home')
+    }
 
-    this.props.navigation.navigate('Home');
-  }
+    resetWebViewToInitialUrl = () => {
+        this.setState({
+            key: this.state.key + 1
+        });
+    };
 
-  // navigate to signup screen
-  onSignupButtonPressed = () => {
-    this.props.navigation.navigate('Signup');
-  }
+    _onError = (error) => {
+        return (
+            this.setState({
+                loading: true
+            })
+        )
+    }
 
-  // navigate to forgot password screen
-  onForgotPasswordButtonPressed = () => {
-    this.props.navigation.navigate('ForgotPassword');
-  }
+    _onNavigationStateChange = (state) => {
+        if (state.url.includes('http://127.0.0.1:8000/?state')) {
+            let token = state.url.split('code=')[1];
+            if (token !== undefined) {
+                SecureStore.setItemAsync("token", token);
+                getToken(token)
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then(async (response) => {
+                        await SecureStore.setItemAsync('time', Date.now().toString());
+                        await SecureStore.setItemAsync('token', response.access_token);
+                        await SecureStore.setItemAsync('refresh_token', response.refresh_token);
+                        this.props.navigation.navigate('Home');
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                    });
+            } else {
+                alert('Please login to continue.');
+                this.resetWebViewToInitialUrl()
+            }
+        }
+    }
 
-  render() {
-    return (
-      <Container style={styles.container}>
-        <Content contentContainerStyle={styles.content}>
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Image
-              style={styles.logo}
-              source={require('../../assets/images/icon.png')}
-            />
-            <Text style={styles.logoText}>Crowdbotics</Text>
-          </View>
-
-          {/* Form */}
-          <Form style={styles.form}>
-            <Item
-              style={styles.item}
-              rounded
-              last
-            >
-              <Input
-                style={styles.input}
-                placeholder="Username"
-                placeholderTextColor="#afb0d1"
-                autoCapitalize="none"
-                onChangeText={username => this.setState({ username })}
-              />
-            </Item>
-            <Item
-              style={styles.item}
-              rounded
-              last
-            >
-              <Input
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor="#afb0d1"
-                onChangeText={password => this.setState({ password })}
-                secureTextEntry
-              />
-            </Item>
-          </Form>
-
-          <View style={styles.buttonContainer}>
-            {/* Login Button */}
-            <Button
-              style={styles.button}
-              onPress={this.onLoginButtonPressed}
-              hasText
-              block
-              large
-              dark
-              rounded
-            >
-              <Text style={styles.loginText}>LOGIN</Text>
-            </Button>
-
-            <View style={styles.forgotPasswordContainer}>
-              <TouchableOpacity onPress={this.onForgotPasswordButtonPressed}>
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Signup Button */}
-            <View style={styles.signupContainer}>
-              <Text style={styles.dontHaveAccountText}>Don't have an account?</Text>
-              <TouchableOpacity onPress={this.onSignupButtonPressed}>
-                <Text style={styles.signupText}>Sign Up Now.</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Content>
-      </Container>
-    );
-  }
+    render() {
+        return (
+            <Container style={styles.container}>
+                {!this.state.loading &&
+                <WebView
+                    key={ this.state.key }
+                    source={{uri: `https://www.reddit.com/api/v1/authorize?client_id=xMReNoE2VWlRsA&response_type=code&redirect_uri=http://127.0.0.1:8000&duration=permanent&scope=${this.state.scope}&state=asdfasdf`}}
+                    onNavigationStateChange={this._onNavigationStateChange}
+                    onError={this._onError}
+                    style={{
+                        marginTop: 20,
+                        width: ScreenWidth,
+                        height: ScreenHeight,
+                    }}
+                />
+                }
+                {this.state.loading &&
+                <Spinner color='blue' />
+                }
+            </Container>
+        );
+    }
 }
+
 
 export default Login;

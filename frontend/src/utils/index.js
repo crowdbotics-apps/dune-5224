@@ -13,6 +13,7 @@ const Utils = {
   serverUrl: Config.API_URL.DEV,
   // Live Site URL
   // serverUrl: Config.API_URL.PROD,
+  oAuthUrl: Config.OAUTH_URL,
 
   /**
     * Checks if the input string is a valid email address
@@ -91,6 +92,8 @@ const Utils = {
 
   // creates a list with a range of numbers with start and end values
   rangeFrom: (start, end) => (Array(end - start).fill().map((_, index) => index + start)),
+
+  clientId: Config.CLIENT_ID
 };
 
 export default Utils;

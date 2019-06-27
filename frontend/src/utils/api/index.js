@@ -13,11 +13,11 @@ class APIClient {
   fetchRequest = (url, fetchParams, resolve, reject) => {
     fetch(url, fetchParams)
       .then(async (response) => {
-        if (!response.ok) {
-          const data = await response.json();
-
-          throw Error(data.message);
-        }
+          if (!response.ok) {
+              console.log(response)
+              const data = await response.json();
+              throw data;
+          }
 
         return response;
       })

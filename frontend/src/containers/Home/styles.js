@@ -4,21 +4,23 @@ import {
 
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0a1142',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
+  loading: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     alignItems: 'center',
+    justifyContent: 'center'
   },
-  text: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: 'white',
+  header:{
+    backgroundColor: "#00BFFF",
+    height:200,
+    zIndex: -1,
   },
-});
-
+  list: {
+    padding: 10,
+  }
+})
 
 export default styles;

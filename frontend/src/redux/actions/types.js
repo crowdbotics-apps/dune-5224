@@ -1,0 +1,7 @@
+export const HOME_ERROR = 'HOME_ERROR';
+export const HOME_LOADING = 'HOME_LOADING';
+export const HOME_SUCCESS = 'HOME_SUCCESS';
+
+export const PROFILE_ERROR = 'PROFILE_ERROR';
+export const PROFILE_LOADING = 'PROFILE_LOADING';
+export const PROFILE_SUCCESS = 'PROFILE_SUCCESS';
